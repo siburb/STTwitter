@@ -7,11 +7,14 @@
 //
 
 #import "STTwitterOSRequest.h"
-#import <Social/Social.h>
-#import <Accounts/Accounts.h>
 #import "STHTTPRequest.h"
 #import "NSString+STTwitter.h"
 #import "NSError+STTwitter.h"
+
+#if !TARGET_OS_TV
+#import <Social/Social.h>
+#import <Accounts/Accounts.h>
+#endif
 
 typedef void (^completion_block_t)(NSObject<STTwitterRequestProtocol> *request, NSDictionary *requestHeaders, NSDictionary *responseHeaders, id response);
 typedef void (^error_block_t)(NSObject<STTwitterRequestProtocol> *request, NSDictionary *requestHeaders, NSDictionary *responseHeaders, NSError *error);
@@ -36,6 +39,7 @@ typedef void (^stream_block_t)(NSObject<STTwitterRequestProtocol> *request, NSDa
 
 @implementation STTwitterOSRequest
 
+#if !TARGET_OS_TV
 - (instancetype)initWithAPIResource:(NSString *)resource
                       baseURLString:(NSString *)baseURLString
                          httpMethod:(NSInteger)httpMethod
@@ -280,5 +284,6 @@ didCompleteWithError:(NSError *)error {
         [session finishTasksAndInvalidate];
     });
 }
+#endif
 
 @end

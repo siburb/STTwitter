@@ -742,7 +742,7 @@
 
 - (NSString *)base64EncodedString {
     
-#if TARGET_OS_IPHONE
+#if TARGET_OS_IOS
     return [self base64Encoding]; // private API
 #else
     
