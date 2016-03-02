@@ -9,15 +9,20 @@
 #import "STTwitterOS.h"
 #import "NSString+STTwitter.h"
 #import "STTwitterOSRequest.h"
+#import "NSError+STTwitter.h"
+
+#if !TARGET_OS_TV
 #import <Social/Social.h>
 #import <Accounts/Accounts.h>
-#import "NSError+STTwitter.h"
-#if TARGET_OS_IPHONE
+#endif
+
+#if TARGET_OS_IOS
 #import <Twitter/Twitter.h> // iOS 5
 #endif
 
 const NSString *STTwitterOSInvalidatedAccount = @"STTwitterOSInvalidatedAccount";
 
+#if !TARGET_OS_TV
 @interface ACAccount (STTwitterOS)
 - (NSString *)st_userID; // private API
 @end
@@ -26,9 +31,11 @@ const NSString *STTwitterOSInvalidatedAccount = @"STTwitterOSInvalidatedAccount"
 @property (nonatomic, strong) ACAccountStore *accountStore; // the ACAccountStore must be kept alive for as long as we need an ACAccount instance, see WWDC 2011 Session 124 for more info
 @property (nonatomic, strong) ACAccount *account; // if nil, will be set to first account available
 @end
+#endif
 
 @implementation STTwitterOS
 
+#if !TARGET_OS_TV
 - (instancetype)init {
     self = [super init];
     
@@ -61,7 +68,7 @@ const NSString *STTwitterOSInvalidatedAccount = @"STTwitterOSInvalidatedAccount"
 }
 
 - (NSString *)consumerName {
-#if TARGET_OS_IPHONE
+#if TARGET_OS_IOS
     return @"iOS";
 #else
     return @"OS X";
@@ -216,7 +223,7 @@ const NSString *STTwitterOSInvalidatedAccount = @"STTwitterOSInvalidatedAccount"
         }];
     };
     
-#if TARGET_OS_IPHONE &&  (__IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_6_0)
+#if TARGET_OS_IOS &&  (__IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_6_0)
     if (floor(NSFoundationVersionNumber) < NSFoundationVersionNumber_iOS_6_0) {
         [self.accountStore requestAccessToAccountsWithType:accountType
                                      withCompletionHandler:accountStoreRequestCompletionHandler];
@@ -408,5 +415,6 @@ const NSString *STTwitterOSInvalidatedAccount = @"STTwitterOSInvalidatedAccount"
 - (NSString *)st_userID {
     return [self valueForKeyPath:@"properties.user_id"];
 }
+#endif
 
 @end

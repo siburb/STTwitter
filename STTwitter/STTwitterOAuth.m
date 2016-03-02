@@ -742,7 +742,7 @@
 
 - (NSString *)base64EncodedString {
     
-#if TARGET_OS_IPHONE
+#if defined(TARGET_OS_IOS) || defined(TARGET_OS_TV)
     return [self base64Encoding]; // private API
 #else
     

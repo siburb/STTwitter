@@ -23,6 +23,7 @@ extern const NSString *STTwitterOSInvalidatedAccount;
 
 @interface STTwitterOS : NSObject <STTwitterProtocol>
 
+#if !TARGET_OS_TV
 @property (nonatomic) NSTimeInterval timeoutInSeconds;
 
 + (instancetype)twitterAPIOSWithAccount:(ACAccount *)account;
@@ -34,5 +35,6 @@ extern const NSString *STTwitterOSInvalidatedAccount;
 // useful for the so-called 'OAuth Echo' https://dev.twitter.com/twitter-kit/ios/oauth-echo
 
 - (NSDictionary *)OAuthEchoHeadersToVerifyCredentials;
+#endif
 
 @end

@@ -11,6 +11,9 @@
 
 @class ACAccount;
 
+#if TARGET_OS_TV
+@interface STTwitterOSRequest : NSObject
+#else
 @interface STTwitterOSRequest : NSObject <NSURLSessionDataDelegate, STTwitterRequestProtocol>
 
 - (instancetype)initWithAPIResource:(NSString *)resource
@@ -26,5 +29,6 @@
 
 - (void)startRequest;
 - (NSURLRequest *)preparedURLRequest;
+#endif
 
 @end

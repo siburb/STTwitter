@@ -11,9 +11,12 @@
 #import "STTwitterOAuth.h"
 #import "NSString+STTwitter.h"
 #import "STTwitterAppOnly.h"
-#import <Accounts/Accounts.h>
 #import "STHTTPRequest.h"
 #import "STHTTPRequest+STTwitter.h"
+
+#if !TARGET_OS_TV
+#import <Accounts/Accounts.h>
+#endif
 
 NSString *kBaseURLStringAPI_1_1 = @"https://api.twitter.com/1.1";
 NSString *kBaseURLStringUpload_1_1 = @"https://upload.twitter.com/1.1";
@@ -35,6 +38,7 @@ static NSDateFormatter *dateFormatter = nil;
 - (instancetype)init {
     self = [super init];
     
+#if !TARGET_OS_TV
     __weak typeof(self) weakSelf = self;
     
     self.observer = [[NSNotificationCenter defaultCenter] addObserverForName:ACAccountStoreDidChangeNotification object:nil queue:nil usingBlock:^(NSNotification *note) {
@@ -61,6 +65,7 @@ static NSDateFormatter *dateFormatter = nil;
     }];
     
     NSLog(@"-- %@", _observer);
+#endif
     
     return self;
 }
@@ -68,16 +73,19 @@ static NSDateFormatter *dateFormatter = nil;
 - (void)dealloc {
     self.oauth = nil;
     
+#if !TARGET_OS_TV
     [[NSNotificationCenter defaultCenter] removeObserver:_observer name:ACAccountStoreDidChangeNotification object:nil];
+#endif
 
     self.delegate = nil;
     self.observer = nil;
 }
 
 + (NSString *)versionString {
-    return @"0.2.2";
+    return @"0.2.4";
 }
 
+#if !TARGET_OS_TV
 + (instancetype)twitterAPIOSWithAccount:(ACAccount *)account delegate:(NSObject <STTwitterAPIOSProtocol> *)delegate {
     STTwitterAPI *twitter = [[STTwitterAPI alloc] init];
     twitter.oauth = [STTwitterOS twitterAPIOSWithAccount:account];
@@ -98,6 +106,7 @@ static NSDateFormatter *dateFormatter = nil;
 + (instancetype)twitterAPIOSWithFirstAccount __deprecated_msg("use twitterAPIOSWithFirstAccountAndDelegate:") {
     return [self twitterAPIOSWithFirstAccountAndDelegate:nil];
 }
+#endif
 
 + (instancetype)twitterAPIWithOAuthConsumerName:(NSString *)consumerName
                                     consumerKey:(NSString *)consumerKey
@@ -252,6 +261,7 @@ authenticateInsteadOfAuthorize:authenticateInsteadOfAuthorize
     
     __weak typeof(self) weakSelf = self;
     
+#if !TARGET_OS_TV
     [_oauth verifyCredentialsLocallyWithSuccessBlock:^(NSString *username, NSString *userID) {
         
         __strong typeof(self) strongSelf = weakSelf;
@@ -262,9 +272,11 @@ authenticateInsteadOfAuthorize:authenticateInsteadOfAuthorize
         
         if(username) [strongSelf setUserName:username];
         if(userID) [strongSelf setUserID:userID];
+#endif
         
         [_oauth verifyCredentialsRemotelyWithSuccessBlock:^(NSString *username, NSString *userID) {
             
+            __strong typeof(self) strongSelf = weakSelf;
             if(strongSelf == nil) {
                 errorBlock(nil);
                 return;
@@ -278,9 +290,11 @@ authenticateInsteadOfAuthorize:authenticateInsteadOfAuthorize
             errorBlock(error);
         }];
         
+#if !TARGET_OS_TV
     } errorBlock:^(NSError *error) {
         errorBlock(error); // early, local detection of account issues, eg. incomplete OS account
     }];
+#endif
 }
 
 // deprecated, use verifyCredentialsWithUserSuccessBlock:errorBlock:
@@ -332,21 +346,23 @@ authenticateInsteadOfAuthorize:authenticateInsteadOfAuthorize
 }
 
 - (NSString *)userName {
-    
+#if !TARGET_OS_TV
     if([_oauth isKindOfClass:[STTwitterOS class]]) {
         STTwitterOS *twitterOS = (STTwitterOS *)_oauth;
         return twitterOS.username;
     }
+#endif
     
     return _userName;
 }
 
 - (NSString *)userID {
-    
+#if !TARGET_OS_TV
     if([_oauth isKindOfClass:[STTwitterOS class]]) {
         STTwitterOS *twitterOS = (STTwitterOS *)_oauth;
         return twitterOS.userID;
     }
+#endif
     
     return _userID;
 }
@@ -641,7 +657,7 @@ authenticateInsteadOfAuthorize:authenticateInsteadOfAuthorize
                                   
                                   NSData *imageData = sr.responseData;
                                   
-#if TARGET_OS_IPHONE
+#if TARGET_OS_IOS
                                   Class STImageClass = NSClassFromString(@"UIImage");
 #else
                                   Class STImageClass = NSClassFromString(@"NSImage");
@@ -1420,6 +1436,94 @@ authenticateInsteadOfAuthorize:authenticateInsteadOfAuthorize
                                 tweetBlock:tweetBlock
                          stallWarningBlock:nil
                                 errorBlock:errorBlock];
+}
+
+// GET statuses/filter
+
+- (NSObject<STTwitterRequestProtocol> *)getStatusesFilterUserIDs:(NSArray *)userIDs
+                                                 keywordsToTrack:(NSArray *)keywordsToTrack
+                                           locationBoundingBoxes:(NSArray *)locationBoundingBoxes
+                                                   stallWarnings:(NSNumber *)stallWarnings
+                                                   progressBlock:(void(^)(NSDictionary *json, STTwitterStreamJSONType type))progressBlock
+                                                      errorBlock:(void(^)(NSError *error))errorBlock {
+    
+    NSString *follow = [userIDs componentsJoinedByString:@","];
+    NSString *keywords = [keywordsToTrack componentsJoinedByString:@","];
+    NSString *locations = [locationBoundingBoxes componentsJoinedByString:@","];
+    
+    NSAssert(([follow length] || [keywords length] || [locations length]), @"At least one predicate parameter (follow, locations, or track) must be specified.");
+    
+    NSMutableDictionary *md = [NSMutableDictionary dictionary];
+    md[@"delimited"] = @"length";
+    
+    if(stallWarnings) md[@"stall_warnings"] = [stallWarnings boolValue] ? @"1" : @"0";
+    
+    if([follow length]) md[@"follow"] = follow;
+    if([keywords length]) md[@"track"] = keywords;
+    if([locations length]) md[@"locations"] = locations;
+    
+    self.streamParser = [[STTwitterStreamParser alloc] init];
+    __weak STTwitterStreamParser *streamParser = self.streamParser;
+    
+    return [self getResource:@"statuses/filter.json"
+               baseURLString:kBaseURLStringStream_1_1
+                  parameters:md
+       downloadProgressBlock:^(id response) {
+           
+           if (streamParser) {
+               [streamParser parseWithStreamData:response parsedJSONBlock:^(NSDictionary *json, STTwitterStreamJSONType type) {
+                   progressBlock(json, type);
+               }];
+           }
+           
+       } successBlock:^(NSDictionary *rateLimits, id json) {
+           // reaching successBlock for a stream request is an error
+           errorBlock(json);
+       } errorBlock:^(NSError *error) {
+           errorBlock(error);
+       }];
+}
+
+// convenience
+- (NSObject<STTwitterRequestProtocol> *)getStatusesFilterKeyword:(NSString *)keyword
+                                                      tweetBlock:(void(^)(NSDictionary *tweet))tweetBlock
+                                               stallWarningBlock:(void(^)(NSString *code, NSString *message, NSUInteger percentFull))stallWarningBlock
+                                                      errorBlock:(void(^)(NSError *error))errorBlock
+{
+    NSParameterAssert(keyword);
+    
+    return [self getStatusesFilterUserIDs:nil
+                          keywordsToTrack:@[keyword]
+                    locationBoundingBoxes:nil
+                            stallWarnings:stallWarningBlock ? @YES : @NO
+                            progressBlock:^(NSDictionary *json, STTwitterStreamJSONType type) {
+                                
+                                switch (type) {
+                                    case STTwitterStreamJSONTypeTweet:
+                                        tweetBlock(json);
+                                        break;
+                                    case STTwitterStreamJSONTypeWarning:
+                                        if (stallWarningBlock) {
+                                            stallWarningBlock([json valueForKey:@"code"],
+                                                              [json valueForKey:@"message"],
+                                                              [[json valueForKey:@"percent_full"] integerValue]);
+                                        }
+                                        break;
+                                    default:
+                                        break;
+                                }
+                                
+                            } errorBlock:errorBlock];
+}
+
+- (NSObject<STTwitterRequestProtocol> *)getStatusesFilterKeyword:(NSString *)keyword
+                                                      tweetBlock:(void(^)(NSDictionary *tweet))tweetBlock
+                                                      errorBlock:(void(^)(NSError *error))errorBlock
+{
+    return [self getStatusesFilterKeyword:keyword
+                               tweetBlock:tweetBlock
+                        stallWarningBlock:nil
+                               errorBlock:errorBlock];
 }
 
 // GET statuses/sample
