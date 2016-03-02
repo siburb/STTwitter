@@ -549,6 +549,27 @@ authenticateInsteadOfAuthorize:(BOOL)authenticateInsteadOfAuthorize // use NO if
                                                        errorBlock:(void(^)(NSError *error))errorBlock;
 
 /*
+ GET	statuses/filter
+ 
+ See POST statuses/filter above for details.
+ */
+- (NSObject<STTwitterRequestProtocol> *)getStatusesFilterUserIDs:(NSArray *)userIDs
+                                                 keywordsToTrack:(NSArray *)keywordsToTrack
+                                           locationBoundingBoxes:(NSArray *)locationBoundingBoxes
+                                                   stallWarnings:(NSNumber *)stallWarnings
+                                                   progressBlock:(void(^)(NSDictionary *json, STTwitterStreamJSONType type))progressBlock
+                                                      errorBlock:(void(^)(NSError *error))errorBlock;
+
+- (NSObject<STTwitterRequestProtocol> *)getStatusesFilterKeyword:(NSString *)keyword
+                                                      tweetBlock:(void(^)(NSDictionary *tweet))tweetBlock
+                                               stallWarningBlock:(void(^)(NSString *code, NSString *message, NSUInteger percentFull))stallWarningBlock
+                                                      errorBlock:(void(^)(NSError *error))errorBlock;
+
+- (NSObject<STTwitterRequestProtocol> *)getStatusesFilterKeyword:(NSString *)keyword
+                                                      tweetBlock:(void(^)(NSDictionary *tweet))tweetBlock
+                                                      errorBlock:(void(^)(NSError *error))errorBlock;
+
+/*
  GET    statuses/sample
  
  Returns a small random sample of all public statuses. The Tweets returned by the default access level are the same, so if two different clients connect to this endpoint, they will see the same Tweets.

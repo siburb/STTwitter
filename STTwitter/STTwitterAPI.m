@@ -1438,6 +1438,94 @@ authenticateInsteadOfAuthorize:authenticateInsteadOfAuthorize
                                 errorBlock:errorBlock];
 }
 
+// GET statuses/filter
+
+- (NSObject<STTwitterRequestProtocol> *)getStatusesFilterUserIDs:(NSArray *)userIDs
+                                                 keywordsToTrack:(NSArray *)keywordsToTrack
+                                           locationBoundingBoxes:(NSArray *)locationBoundingBoxes
+                                                   stallWarnings:(NSNumber *)stallWarnings
+                                                   progressBlock:(void(^)(NSDictionary *json, STTwitterStreamJSONType type))progressBlock
+                                                      errorBlock:(void(^)(NSError *error))errorBlock {
+    
+    NSString *follow = [userIDs componentsJoinedByString:@","];
+    NSString *keywords = [keywordsToTrack componentsJoinedByString:@","];
+    NSString *locations = [locationBoundingBoxes componentsJoinedByString:@","];
+    
+    NSAssert(([follow length] || [keywords length] || [locations length]), @"At least one predicate parameter (follow, locations, or track) must be specified.");
+    
+    NSMutableDictionary *md = [NSMutableDictionary dictionary];
+    md[@"delimited"] = @"length";
+    
+    if(stallWarnings) md[@"stall_warnings"] = [stallWarnings boolValue] ? @"1" : @"0";
+    
+    if([follow length]) md[@"follow"] = follow;
+    if([keywords length]) md[@"track"] = keywords;
+    if([locations length]) md[@"locations"] = locations;
+    
+    self.streamParser = [[STTwitterStreamParser alloc] init];
+    __weak STTwitterStreamParser *streamParser = self.streamParser;
+    
+    return [self getResource:@"statuses/filter.json"
+               baseURLString:kBaseURLStringStream_1_1
+                  parameters:md
+       downloadProgressBlock:^(id response) {
+           
+           if (streamParser) {
+               [streamParser parseWithStreamData:response parsedJSONBlock:^(NSDictionary *json, STTwitterStreamJSONType type) {
+                   progressBlock(json, type);
+               }];
+           }
+           
+       } successBlock:^(NSDictionary *rateLimits, id json) {
+           // reaching successBlock for a stream request is an error
+           errorBlock(json);
+       } errorBlock:^(NSError *error) {
+           errorBlock(error);
+       }];
+}
+
+// convenience
+- (NSObject<STTwitterRequestProtocol> *)getStatusesFilterKeyword:(NSString *)keyword
+                                                      tweetBlock:(void(^)(NSDictionary *tweet))tweetBlock
+                                               stallWarningBlock:(void(^)(NSString *code, NSString *message, NSUInteger percentFull))stallWarningBlock
+                                                      errorBlock:(void(^)(NSError *error))errorBlock
+{
+    NSParameterAssert(keyword);
+    
+    return [self getStatusesFilterUserIDs:nil
+                          keywordsToTrack:@[keyword]
+                    locationBoundingBoxes:nil
+                            stallWarnings:stallWarningBlock ? @YES : @NO
+                            progressBlock:^(NSDictionary *json, STTwitterStreamJSONType type) {
+                                
+                                switch (type) {
+                                    case STTwitterStreamJSONTypeTweet:
+                                        tweetBlock(json);
+                                        break;
+                                    case STTwitterStreamJSONTypeWarning:
+                                        if (stallWarningBlock) {
+                                            stallWarningBlock([json valueForKey:@"code"],
+                                                              [json valueForKey:@"message"],
+                                                              [[json valueForKey:@"percent_full"] integerValue]);
+                                        }
+                                        break;
+                                    default:
+                                        break;
+                                }
+                                
+                            } errorBlock:errorBlock];
+}
+
+- (NSObject<STTwitterRequestProtocol> *)getStatusesFilterKeyword:(NSString *)keyword
+                                                      tweetBlock:(void(^)(NSDictionary *tweet))tweetBlock
+                                                      errorBlock:(void(^)(NSError *error))errorBlock
+{
+    return [self getStatusesFilterKeyword:keyword
+                               tweetBlock:tweetBlock
+                        stallWarningBlock:nil
+                               errorBlock:errorBlock];
+}
+
 // GET statuses/sample
 - (NSObject<STTwitterRequestProtocol> *)getStatusesSampleStallWarnings:(NSNumber *)stallWarnings
                                                          progressBlock:(void(^)(NSDictionary *json, STTwitterStreamJSONType type))progressBlock
