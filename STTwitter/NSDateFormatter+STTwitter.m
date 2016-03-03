@@ -13,14 +13,13 @@ static NSDateFormatter *stTwitterDateFormatter = nil;
 @implementation NSDateFormatter (STTwitter)
 
 + (NSDateFormatter *)st_TwitterDateFormatter {
-
     // parses the 'created_at' field, eg. "Sun Jun 28 20:33:01 +0000 2009"
-    
-    if(stTwitterDateFormatter == nil) {
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
         stTwitterDateFormatter = [[NSDateFormatter alloc] init];
-        [stTwitterDateFormatter setLocale:[[NSLocale alloc] initWithLocaleIdentifier:@"en_US_POSIX"]];
-        [stTwitterDateFormatter setDateFormat:@"EEE MMM dd HH:mm:ss Z yyyy"];
-    }
+        stTwitterDateFormatter.locale = [[NSLocale alloc] initWithLocaleIdentifier:@"en_US_POSIX"];
+        stTwitterDateFormatter.dateFormat = @"EEE MMM dd HH:mm:ss Z yyyy";
+    });
     
     return stTwitterDateFormatter;
 }

@@ -1368,7 +1368,6 @@ authenticateInsteadOfAuthorize:authenticateInsteadOfAuthorize
     if([locations length]) md[@"locations"] = locations;
     
     self.streamParser = [[STTwitterStreamParser alloc] init];
-    __weak STTwitterStreamParser *streamParser = self.streamParser;
     
     return [self postResource:@"statuses/filter.json"
                 baseURLString:kBaseURLStringStream_1_1
@@ -1376,8 +1375,8 @@ authenticateInsteadOfAuthorize:authenticateInsteadOfAuthorize
           uploadProgressBlock:nil
         downloadProgressBlock:^(NSData *data) {
             
-            if (streamParser) {
-                [streamParser parseWithStreamData:data parsedJSONBlock:^(NSDictionary *json, STTwitterStreamJSONType type) {
+            if (self.streamParser) {
+                [self.streamParser parseWithStreamData:data parsedJSONBlock:^(NSDictionary *json, STTwitterStreamJSONType type) {
                     progressBlock(json, type);
                 }];
             }
@@ -1463,15 +1462,14 @@ authenticateInsteadOfAuthorize:authenticateInsteadOfAuthorize
     if([locations length]) md[@"locations"] = locations;
     
     self.streamParser = [[STTwitterStreamParser alloc] init];
-    __weak STTwitterStreamParser *streamParser = self.streamParser;
     
     return [self getResource:@"statuses/filter.json"
                baseURLString:kBaseURLStringStream_1_1
                   parameters:md
        downloadProgressBlock:^(id response) {
            
-           if (streamParser) {
-               [streamParser parseWithStreamData:response parsedJSONBlock:^(NSDictionary *json, STTwitterStreamJSONType type) {
+           if (self.streamParser) {
+               [self.streamParser parseWithStreamData:response parsedJSONBlock:^(NSDictionary *json, STTwitterStreamJSONType type) {
                    progressBlock(json, type);
                }];
            }
@@ -1537,15 +1535,14 @@ authenticateInsteadOfAuthorize:authenticateInsteadOfAuthorize
     if(stallWarnings) md[@"stall_warnings"] = [stallWarnings boolValue] ? @"1" : @"0";
     
     self.streamParser = [[STTwitterStreamParser alloc] init];
-    __weak STTwitterStreamParser *streamParser = self.streamParser;
     
     return [self getResource:@"statuses/sample.json"
                baseURLString:kBaseURLStringStream_1_1
                   parameters:md
        downloadProgressBlock:^(id response) {
            
-           if (streamParser) {
-               [streamParser parseWithStreamData:response parsedJSONBlock:^(NSDictionary *json, STTwitterStreamJSONType type) {
+           if (self.streamParser) {
+               [self.streamParser parseWithStreamData:response parsedJSONBlock:^(NSDictionary *json, STTwitterStreamJSONType type) {
                    progressBlock(json, type);
                }];
            }
@@ -1605,15 +1602,14 @@ authenticateInsteadOfAuthorize:authenticateInsteadOfAuthorize
     if(stallWarnings) md[@"stall_warnings"] = [stallWarnings boolValue] ? @"1" : @"0";
     
     self.streamParser = [[STTwitterStreamParser alloc] init];
-    __weak STTwitterStreamParser *streamParser = self.streamParser;
     
     return [self getResource:@"statuses/firehose.json"
                baseURLString:kBaseURLStringStream_1_1
                   parameters:md
        downloadProgressBlock:^(id response) {
            
-           if (streamParser) {
-               [streamParser parseWithStreamData:response parsedJSONBlock:^(NSDictionary *json, STTwitterStreamJSONType type) {
+           if (self.streamParser) {
+               [self.streamParser parseWithStreamData:response parsedJSONBlock:^(NSDictionary *json, STTwitterStreamJSONType type) {
                    progressBlock(json, type);
                }];
            }
@@ -1650,15 +1646,14 @@ authenticateInsteadOfAuthorize:authenticateInsteadOfAuthorize
     if([locations length]) md[@"locations"] = locations;
     
     self.streamParser = [[STTwitterStreamParser alloc] init];
-    __weak STTwitterStreamParser *streamParser = self.streamParser;
     
     return [self getResource:@"user.json"
                baseURLString:kBaseURLStringUserStream_1_1
                   parameters:md
        downloadProgressBlock:^(id response) {
            
-           if (streamParser) {
-               [streamParser parseWithStreamData:response parsedJSONBlock:^(NSDictionary *json, STTwitterStreamJSONType type) {
+           if (self.streamParser) {
+               [self.streamParser parseWithStreamData:response parsedJSONBlock:^(NSDictionary *json, STTwitterStreamJSONType type) {
                    progressBlock(json, type);
                }];
            }
@@ -1741,15 +1736,14 @@ authenticateInsteadOfAuthorize:authenticateInsteadOfAuthorize
     if([follow length]) md[@"follow"] = follow;
     
     self.streamParser = [[STTwitterStreamParser alloc] init];
-    __weak STTwitterStreamParser *streamParser = self.streamParser;
     
     return [self getResource:@"site.json"
                baseURLString:kBaseURLStringSiteStream_1_1
                   parameters:md
        downloadProgressBlock:^(NSData *data) {
            
-           if (streamParser) {
-               [streamParser parseWithStreamData:data parsedJSONBlock:^(NSDictionary *json, STTwitterStreamJSONType type) {
+           if (self.streamParser) {
+               [self.streamParser parseWithStreamData:data parsedJSONBlock:^(NSDictionary *json, STTwitterStreamJSONType type) {
                    progressBlock(json, type);
                }];
            }
