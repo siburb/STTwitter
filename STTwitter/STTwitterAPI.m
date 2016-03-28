@@ -761,7 +761,7 @@ authenticateInsteadOfAuthorize:authenticateInsteadOfAuthorize
                                                           excludeReplies:(NSNumber *)excludeReplies
                                                       contributorDetails:(NSNumber *)contributorDetails
                                                          includeEntities:(NSNumber *)includeEntities
-                                                            successBlock:(void(^)(NSArray *statuses))successBlock
+                                                            successBlock:(void(^)(NSArray *statuses, NSUInteger suggestedPollInterval))successBlock
                                                               errorBlock:(void(^)(NSError *error))errorBlock {
     
     NSMutableDictionary *md = [NSMutableDictionary dictionary];
@@ -776,7 +776,13 @@ authenticateInsteadOfAuthorize:authenticateInsteadOfAuthorize
     if(includeEntities) md[@"include_entities"] = [includeEntities boolValue] ? @"1" : @"0";
     
     return [self getAPIResource:@"statuses/home_timeline.json" parameters:md successBlock:^(NSDictionary *rateLimits, id response) {
-        successBlock(response);
+        NSUInteger rateLimitRemaining = [rateLimits[@"x-rate-limit-remaining"] integerValue];
+        NSTimeInterval resetEpochTime = [rateLimits[@"x-rate-limit-reset"] integerValue];
+        NSTimeInterval nowEpochTime = [[NSDate date] timeIntervalSince1970];
+        NSTimeInterval timeIntervalToReset = resetEpochTime - nowEpochTime;
+        NSTimeInterval suggestedPollInterval = timeIntervalToReset / rateLimitRemaining;
+        
+        successBlock(response, suggestedPollInterval);
     } errorBlock:^(NSError *error) {
         errorBlock(error);
     }];
@@ -842,7 +848,7 @@ authenticateInsteadOfAuthorize:authenticateInsteadOfAuthorize
                                    excludeReplies:nil
                                contributorDetails:nil
                                   includeEntities:nil
-                                     successBlock:^(NSArray *statuses) {
+                                     successBlock:^(NSArray *statuses, NSUInteger suggestedPollInterval) {
                                          successBlock(statuses);
                                      } errorBlock:^(NSError *error) {
                                          errorBlock(error);

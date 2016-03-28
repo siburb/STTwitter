@@ -272,7 +272,9 @@ authenticateInsteadOfAuthorize:(BOOL)authenticateInsteadOfAuthorize // use NO if
 /*
  GET	statuses/home_timeline
  
- Returns Tweets (*: tweets from people the user follows)
+ Returns:
+ 1. statuses: Tweets from people the user follows.
+ 2. suggestedPollInterval: suggested interval between calls to this endpoint, based on the number of remaining calls in the 15 minute period.
  
  Returns a collection of the most recent Tweets and retweets posted by the authenticating user and the users they follow. The home timeline is central to how most users interact with the Twitter service.
  
@@ -286,7 +288,7 @@ authenticateInsteadOfAuthorize:(BOOL)authenticateInsteadOfAuthorize // use NO if
                                                           excludeReplies:(NSNumber *)excludeReplies
                                                       contributorDetails:(NSNumber *)contributorDetails
                                                          includeEntities:(NSNumber *)includeEntities
-                                                            successBlock:(void(^)(NSArray *statuses))successBlock
+                                                            successBlock:(void(^)(NSArray *statuses, NSUInteger suggestedPollInterval))successBlock
                                                               errorBlock:(void(^)(NSError *error))errorBlock;
 
 // convenience method
