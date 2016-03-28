@@ -848,7 +848,7 @@ authenticateInsteadOfAuthorize:authenticateInsteadOfAuthorize
                                    excludeReplies:nil
                                contributorDetails:nil
                                   includeEntities:nil
-                                     successBlock:^(NSArray *statuses) {
+                                     successBlock:^(NSArray *statuses, NSUInteger suggestedPollInterval) {
                                          successBlock(statuses);
                                      } errorBlock:^(NSError *error) {
                                          errorBlock(error);
