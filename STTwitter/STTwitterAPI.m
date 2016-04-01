@@ -1178,6 +1178,26 @@ authenticateInsteadOfAuthorize:authenticateInsteadOfAuthorize
                             }];
 }
 
+// POST	statuses/unretweet/:id
+- (NSObject<STTwitterRequestProtocol> *)postStatusUnretweetWithID:(NSString *)statusID
+                                                         trimUser:(NSNumber *)trimUser
+                                                     successBlock:(void(^)(NSDictionary *status))successBlock
+                                                       errorBlock:(void(^)(NSError *error))errorBlock {
+    
+    NSParameterAssert(statusID);
+    
+    NSMutableDictionary *md = [NSMutableDictionary dictionary];
+    if(trimUser) md[@"trim_user"] = [trimUser boolValue] ? @"1" : @"0";
+    
+    NSString *resource = [NSString stringWithFormat:@"statuses/unretweet/%@.json", statusID];
+    
+    return [self postAPIResource:resource parameters:md successBlock:^(NSDictionary *rateLimits, id response) {
+        successBlock(response);
+    } errorBlock:^(NSError *error) {
+        errorBlock(error);
+    }];
+}
+
 - (NSObject<STTwitterRequestProtocol> *)getStatusesRetweetersIDsForStatusID:(NSString *)statusID
                                                                      cursor:(NSString *)cursor
                                                                successBlock:(void(^)(NSArray *ids, NSString *previousCursor, NSString *nextCursor))successBlock
@@ -4530,7 +4550,7 @@ authenticateInsteadOfAuthorize:authenticateInsteadOfAuthorize
         
         dispatch_group_enter(group);
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
-        
+            
             __strong typeof(weakSelf) strongSelf = weakSelf;
             if(strongSelf == nil) {
                 lastErrorReceived = [NSError errorWithDomain:@"STTwitter" code:9999 userInfo:nil]; // TODO: improve
@@ -4548,21 +4568,21 @@ authenticateInsteadOfAuthorize:authenticateInsteadOfAuthorize
             //NSLog(@"-- POST %@", [md valueForKey:@"segment_index"]);
             
             [strongSelf postResource:@"media/upload.json"
-                 baseURLString:kBaseURLStringUpload_1_1
-                    parameters:md
-           uploadProgressBlock:^(int64_t bytesWritten, int64_t totalBytesWritten, int64_t totalBytesExpectedToWrite) {
-               accumulatedBytesWritten += bytesWritten;
-               uploadProgressBlock(bytesWritten, accumulatedBytesWritten, dataLength);
-           } downloadProgressBlock:nil
-                  successBlock:^(NSDictionary *rateLimits, id response) {
-                      //NSLog(@"-- POST OK %@", [md valueForKey:@"segment_index"]);
-                      lastResponseReceived = response;
-                      dispatch_group_leave(group);
-                  } errorBlock:^(NSError *error) {
-                      //NSLog(@"-- POST KO %@", [md valueForKey:@"segment_index"]);
-                      errorBlock(error);
-                      dispatch_group_leave(group);
-                  }];
+                       baseURLString:kBaseURLStringUpload_1_1
+                          parameters:md
+                 uploadProgressBlock:^(int64_t bytesWritten, int64_t totalBytesWritten, int64_t totalBytesExpectedToWrite) {
+                     accumulatedBytesWritten += bytesWritten;
+                     uploadProgressBlock(bytesWritten, accumulatedBytesWritten, dataLength);
+                 } downloadProgressBlock:nil
+                        successBlock:^(NSDictionary *rateLimits, id response) {
+                            //NSLog(@"-- POST OK %@", [md valueForKey:@"segment_index"]);
+                            lastResponseReceived = response;
+                            dispatch_group_leave(group);
+                        } errorBlock:^(NSError *error) {
+                            //NSLog(@"-- POST KO %@", [md valueForKey:@"segment_index"]);
+                            errorBlock(error);
+                            dispatch_group_leave(group);
+                        }];
         });
         
         segmentIndex += 1;

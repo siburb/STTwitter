@@ -72,7 +72,7 @@ STTwitter <= 0.2.2 requires iOS 5+ or OS X 10.7+.
 
 STTwitter >= 0.2.3 requires iOS 7+ or OS X 10.9+.
 
-Vea Software has a great live-demo [tutorial](http://www.veasoftware.com/tutorials/2014/6/17/xcode-5-tutorial-ios-7-app-only-authentication-twitter-api-version-11) about creating a simple iOS app using STTwitter's app only mode.
+Vea Software has a great live-demo [tutorial](https://www.youtube.com/watch?v=DUzu8itLsEM) about creating a simple iOS app using STTwitter's app only mode.
 
 ### Code Snippets
 
@@ -224,7 +224,7 @@ This URL is then overriden by the `oauthCallback ` parameter in:
 
 ##### Reverse Authentication
 
-Reference: [https://dev.twitter.com/docs/ios/using-reverse-auth](https://dev.twitter.com/docs/ios/using-reverse-auth)
+Reference: [https://dev.twitter.com/docs/ios/using-reverse-auth](https://web.archive.org/web/20131017221058/https://dev.twitter.com/docs/ios/using-reverse-auth)
 
 The most common use case of reverse authentication is letting users register/login to a remote service with their OS X or iOS Twitter account.
 
