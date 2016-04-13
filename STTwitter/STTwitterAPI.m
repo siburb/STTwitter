@@ -779,8 +779,12 @@ authenticateInsteadOfAuthorize:authenticateInsteadOfAuthorize
         NSUInteger rateLimitRemaining = [rateLimits[@"x-rate-limit-remaining"] integerValue];
         NSTimeInterval resetEpochTime = [rateLimits[@"x-rate-limit-reset"] integerValue];
         NSTimeInterval nowEpochTime = [[NSDate date] timeIntervalSince1970];
-        NSTimeInterval timeIntervalToReset = resetEpochTime - nowEpochTime;
-        NSTimeInterval suggestedPollInterval = timeIntervalToReset / rateLimitRemaining;
+        
+        NSTimeInterval suggestedPollInterval = 1;
+        if (resetEpochTime > nowEpochTime) {
+            NSTimeInterval timeIntervalToReset = resetEpochTime - nowEpochTime;
+            suggestedPollInterval = timeIntervalToReset / rateLimitRemaining;
+        }
         
         successBlock(response, suggestedPollInterval);
     } errorBlock:^(NSError *error) {
